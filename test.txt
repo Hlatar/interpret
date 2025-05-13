@@ -1,0 +1,15 @@
+struct fsdfsfd {
+    int x ;
+    char y;
+};
+int x ;
+
+
+
+void sdfdf(){
+    
+    if (a == b || c < 5 &&  !flag) { int a ; }
+    return x > 10 ? y : z;
+}
+
+

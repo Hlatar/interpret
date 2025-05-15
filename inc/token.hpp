@@ -124,7 +124,7 @@ static std::string tokenTypeToString(TokenType type) {
         {TokenType::SQUOTE, "\'"},
         {TokenType::DQUOTE, "\""},
         {TokenType::NULL_CHAR, "\0"},
-        {TokenType::COMMENT_STR, "//"},
+        {TokenType::COMMENT_STR, "comment"},
         {TokenType::COMMENT_MULSTR_R, "/*"},
         {TokenType::COMMENT_MULSTR_L, "*/"},
 

@@ -38,4 +38,7 @@ public:
     virtual void visit(IdentifierExprNode&) = 0;
     virtual void visit(GroupExprNode&) = 0;
     virtual void visit(PostfixExprNode&) = 0;
+    virtual void visit(InitListNode&) = 0;
+    virtual void visit(BreakStmtNode&) = 0;
+    virtual void visit(ContinueStmtNode&) = 0;
 };

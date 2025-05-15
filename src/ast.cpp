@@ -107,3 +107,15 @@ void GroupExprNode::accept(Visitor& visitor) {
 void PostfixExprNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
+
+void InitListNode::accept(Visitor& visitor){
+    visitor.visit(*this);
+}
+
+void BreakStmtNode::accept(Visitor& visitor){
+    visitor.visit(*this);
+}
+
+void ContinueStmtNode::accept(Visitor& visitor){
+    visitor.visit(*this);
+}

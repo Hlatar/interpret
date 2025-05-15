@@ -68,7 +68,18 @@ std::unique_ptr<VarDeclNode> Parser::parseVarDeclaration(){
         std::unique_ptr<ASTNode> initializer = nullptr;
 
         if (match(TokenType::EQUAL)) {
+            if (match(TokenType::LFIGUREBRACE)) {
+                std::vector<std::unique_ptr<ASTNode>> initList;
+                if (!check(TokenType::RFIGUREBRACE)) {
+                    do {
+                        initList.push_back(parseExpression());
+                    } while (match(TokenType::COMMA));
+                }
+                expect(TokenType::RFIGUREBRACE, "Expected '}'");
+                initializer = std::make_unique<InitListNode>(std::move(initList));
+            } else {
             initializer = parseExpression();
+            }
         }
 
         declarators.push_back(std::make_unique<InitDeclaratorNode>(
@@ -209,9 +220,12 @@ std::unique_ptr<ASTNode> Parser::parsePostfix() {
             expr = std::make_unique<CallExprNode>(std::move(expr), std::move(args));  // Создаем узел для вызова функции
         } else if (match(TokenType::LSQUAREBRACE)) {
             // Индексация массива
-            auto index = parseExpression();  // Разбираем индекс
-            expect(TokenType::RSQUAREBRACE, "Expected ']' after index.");
-            expr = std::make_unique<SubscriptExprNode>(std::move(expr), std::move(index));  // Создаем узел для индексации
+            if (check(TokenType::RSQUAREBRACE)) {
+                reportError("Expected expression inside '[]'");
+            }
+            auto index = parseExpression();
+            expect(TokenType::RSQUAREBRACE, "Expected ']'");
+            expr = std::make_unique<SubscriptExprNode>(std::move(expr), std::move(index));
         } 
         else if (match({TokenType::INCREMENT, TokenType::DECREMENT})) {
             // Постфиксный инкремент/декремент
@@ -230,18 +244,26 @@ std::unique_ptr<ASTNode> Parser::parsePostfix() {
 
 // Основные элементы выражений (литералы, идентификаторы, скобки) // Вот это прописать надо
 std::unique_ptr<ASTNode> Parser::parsePrimary() {
-    if (match({TokenType::INT_LIT,  TokenType::FLOAT_LIT})) {
-        --current;
-        auto token = parseType();  // Сохраняем matched токен один раз
-        return std::make_unique<LiteralExprNode>(std::move(token), prev().value);
+    if (match(TokenType::INT_LIT)) {
+        return std::make_unique<LiteralExprNode>(
+            std::make_unique<TypeNode>("int"), prev().value
+        );
+    } else if (match(TokenType::FLOAT_LIT)) {
+        return std::make_unique<LiteralExprNode>(
+            std::make_unique<TypeNode>("float"), prev().value
+        );
+    } else if (match(TokenType::CHAR_LIT)) {
+        return std::make_unique<LiteralExprNode>(
+            std::make_unique<TypeNode>("char"), prev().value
+        );
+    } else if (match(TokenType::STR_LIT)) {
+        return std::make_unique<LiteralExprNode>(
+            std::make_unique<TypeNode>("string"), prev().value
+        );
+    } else if (match(TokenType::ID)) {
+        return std::make_unique<IdentifierExprNode>(prev().value);
     }
-
-    if (match(TokenType::ID)) {
-        Token token = prev();
-        return std::make_unique<IdentifierExprNode>(token.value);
-    }
-
-    if (match(TokenType::LBRACE)) {
+    else if (match(TokenType::LBRACE)) {
         auto expr = parseExpression();
         expect(TokenType::RBRACE, "Expected ')' after expression.");
         return std::make_unique<GroupExprNode>(std::move(expr));
@@ -253,11 +275,6 @@ std::unique_ptr<ASTNode> Parser::parsePrimary() {
 
 
 std::unique_ptr<ASTNode> Parser::parseType(){
-    std::cout << tokens[current].toString() << std::endl ;
-    if (match(TokenType::INT_LIT)) return std::make_unique<TypeNode>("int_lit");
-    if (match(TokenType::CHAR_LIT)) return std::make_unique<TypeNode>("char_lit");
-    if (match(TokenType::FLOAT_LIT)) return std::make_unique<TypeNode>("char_lit");
-    if (match(TokenType::STR_LIT)) return std::make_unique<TypeNode>("char_lit");
     if (match(TokenType::INT)) return std::make_unique<TypeNode>("int");
     if (match(TokenType::DOUBLE)) return std::make_unique<TypeNode>("double");
     if (match(TokenType::CHAR)) return std::make_unique<TypeNode>("char");
@@ -270,20 +287,15 @@ std::unique_ptr<ASTNode> Parser::parseType(){
 }
 
 std::unique_ptr<DeclaratorNode> Parser::parseDeclarator() {
-    if (!check(TokenType::ID)) {
-        reportError("Expected identifier in declarator");
-        return nullptr;
-    }
-
-    std::string name = peek().value;
-    advance();
-
+    expect(TokenType::ID, "Expected identifier");
+    std::string name = prev().value;
     std::unique_ptr<ASTNode> arraySize = nullptr;
     if (match(TokenType::LSQUAREBRACE)) {
-        arraySize = parseExpression(); // предполагается, что ты реализуешь это
-        expect(TokenType::RSQUAREBRACE, "Expected ']' after array size");
+        if (!check(TokenType::RSQUAREBRACE)) {
+            arraySize = parseExpression();
+        }
+        expect(TokenType::RSQUAREBRACE, "Expected ']'");
     }
-
     return std::make_unique<DeclaratorNode>(name, std::move(arraySize));
 }
 
@@ -412,6 +424,24 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
         return std::make_unique<WhileLoopNode>(std::move(condition), std::move(body));
     }
 
+    if (match(TokenType::DO)) {
+        auto body = parseStatement();
+        expect(TokenType::WHILE, "Expected 'while' after do");
+        expect(TokenType::LBRACE, "Expected '(' after 'while'");
+        auto condition = parseExpression();
+        expect(TokenType::RBRACE, "Expected ')' after condition");
+        expect(TokenType::SEMICOLON, "Expected ';' after do-while");
+        return std::make_unique<DoWhileLoopNode>(std::move(body), std::move(condition));
+    }
+    
+    if (match(TokenType::BREAK)) {
+    expect(TokenType::SEMICOLON, "Expected ';' after 'break'");
+    return std::make_unique<BreakStmtNode>();
+    } else if (match(TokenType::CONTINUE)) {
+        expect(TokenType::SEMICOLON, "Expected ';' after 'continue'");
+        return std::make_unique<ContinueStmtNode>();
+    }
+
     if (match(TokenType::FOR)) {
         expect(TokenType::LBRACE, "Expected '(' after 'for'");
 
@@ -470,15 +500,15 @@ std::unique_ptr<StructDeclNode> Parser::parseStructDeclaration() {
     std::string name = peek().value;
     std::vector<std::unique_ptr<VarDeclNode>> members;
     
-    std::cout << tokens[current].value << std::endl ;
+    
 
     advance();
     if(!check(TokenType::LFIGUREBRACE)){
         reportError(" error: expected declaration '{'");
     } 
-    std::cout << tokens[current].value << std::endl ;
+    
     advance();
-    std::cout << tokens[current].value << std::endl ;
+    
     while(!check(TokenType::RFIGUREBRACE) && !isAtEnd()){
         members.push_back(parseVarDeclaration());
     }

@@ -1,15 +1,26 @@
 struct fsdfsfd {
     int x ;
     char y;
+    int x[] = {};
+    int x[2];
+    int x[2] = {1 , 3 };
+    int x = {1 , 2 ,3};
+    char x[2] = {'d', 'd'};
+    double x[2] = {1.1, 2.2};
 };
 int x ;
 
 
 
 void sdfdf(){
-    
+    int x[] = {};
+    int x[2];
+    int x[2] = {1 , 3 };
+    int x = {1 , 2 ,3};
     if (a == b || c < 5 &&  !flag) { int a ; }
     return x > 10 ? y : z;
-}
+} 
+ 
+
 
 

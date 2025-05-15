@@ -49,6 +49,15 @@ struct InitDeclaratorNode : ASTNode {
     void accept(Visitor&) override;
 };
 
+
+struct InitListNode : ASTNode {
+    std::vector<std::unique_ptr<ASTNode>> elements;
+    InitListNode(std::vector<std::unique_ptr<ASTNode>> elements) : elements(std::move(elements)) {}
+    void accept(Visitor&) override;
+};
+
+
+
 struct VarDeclNode : ASTNode {
     std::unique_ptr<ASTNode> type;
     std::vector<std::unique_ptr<InitDeclaratorNode>> declarators;
@@ -95,6 +104,16 @@ struct StructDeclNode : ASTNode {
         : name(name), members(std::move(members)) {}
 
     void accept(Visitor&) override;
+};
+
+struct BreakStmtNode : ASTNode{
+    BreakStmtNode() = default;
+    void accept(Visitor& visitor) override ;
+};
+
+struct ContinueStmtNode : ASTNode {
+    ContinueStmtNode() = default;
+    void accept(Visitor& visitor) override ;
 };
 
 struct BlockStatementNode : ASTNode {

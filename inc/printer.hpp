@@ -38,6 +38,10 @@ public:
     void visit(class BreakStatementNode&) override;
     void visit(class ContinueStatementNode&) override;
     void visit(class PostfixExprNode&) override;
+    void visit(class InitListNode&) override;
+    void visit(class BreakStmtNode&) override;
+    void visit(class ContinueStmtNode&) override;
+
 
 
 private:

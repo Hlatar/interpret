@@ -286,3 +286,25 @@ void PrintVisitor::visit(PostfixExprNode& node){
     node.expr->accept(*this);
     --indent_level;
 }
+
+void PrintVisitor::visit(InitListNode& node) {
+    indent(); std::cout << "InitListNode\n";
+    ++indent_level;
+    indent(); std::cout << "Elements:\n";
+    ++indent_level;
+    for (auto& element : node.elements) {
+        element->accept(*this);
+    }
+    --indent_level;
+    --indent_level;
+}
+
+void PrintVisitor::visit(BreakStmtNode& node) {
+    indent();
+    std::cout << "BreakStmtNode\n";
+}
+
+void PrintVisitor::visit(ContinueStmtNode& node) {
+    indent();
+    std::cout << "ContinueStmtNode\n";
+}

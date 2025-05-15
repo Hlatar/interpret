@@ -80,7 +80,8 @@ const std::unordered_map<std::string, TokenType> Lexer::keywords = {
     {"static_assert", TokenType::STATIC_ASSERT},
     {"assert", TokenType::ASSERT}, 
     {"exit", TokenType::EXIT},
-    {"struct", TokenType::STRUCT}
+    {"struct", TokenType::STRUCT},
+    {"do", TokenType::DO}
 };
 
 
@@ -88,11 +89,14 @@ const std::unordered_map<std::string, TokenType> Lexer::keywords = {
 
 std::vector<Token> Lexer::tokenize() {
     std::vector<Token> tokens;
-
     while (index < input.size()) {
-        tokens.push_back(extract());
+        Token token = extract();
+        if (token.type == TokenType::END) {
+            tokens.push_back(token);
+            break; // Прерываем после первого END
+        }
+        tokens.push_back(token);
     }
-    tokens.push_back({TokenType::END, ""});
     return tokens;
 }
 
@@ -191,7 +195,7 @@ Token Lexer::extract_operator() {
             std::cerr << "error: missing terminating \" character"  << std::endl;
             exit(1); 
         }else{
-            std::cout << index + i<< std::endl;
+            //std::cout << index + i<< std::endl;
             std::string name(input, index, i);
             index += i +1;
             return {TokenType::STR_LIT, name};
@@ -215,7 +219,7 @@ Token Lexer::extract_operator() {
             ++i;
         }
 
-        std::cout << input[index + i] << std::endl;
+        //std::cout << input[index + i] << std::endl;
         
         if(input.size() == index + i){
             std::cerr << "error: missing terminating \' character"  << std::endl;
@@ -229,7 +233,7 @@ Token Lexer::extract_operator() {
         }else if (input[index] == '\\'){
             std::string name(input, index, i);
             index += i +1;
-            std::cout << name<< std::endl;
+            //std::cout << name<< std::endl;
             
             auto it = escape.find(std::string(1, name[1]));
             if (it != escape.end()) {
@@ -242,7 +246,7 @@ Token Lexer::extract_operator() {
         }else{
             std::string name(input, index, i);
             index += i +1;
-            std::cout << name<< std::endl;
+            //std::cout << name<< std::endl;
             return {TokenType::CHAR_LIT, name};
         }
         throw std::runtime_error("Unexpected operator: " + op);
@@ -266,7 +270,7 @@ Token Lexer::extract_operator() {
         }
         std::string comment(input, index , i);
         index += size + i;
-        std::cout << comment<< std::endl;
+        //std::cout << comment<< std::endl;
 
         return{TokenType::COMMENT_STR , comment};
 

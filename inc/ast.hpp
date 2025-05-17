@@ -116,6 +116,36 @@ struct ContinueStmtNode : ASTNode {
     void accept(Visitor& visitor) override ;
 };
 
+struct SizeofExprNode : ASTNode {
+    std::unique_ptr<ASTNode> operand;
+    bool isType; // sizeof(type) , sizeof expr ;
+    SizeofExprNode(std::unique_ptr<ASTNode> op, bool isType) : operand(std::move(op)), isType(isType) {}
+    void accept(Visitor& visitor) override;
+};
+
+struct StaticAssertNode : ASTNode {
+    std::unique_ptr<ASTNode> condition; // ExprNode
+    std::string message; // Строковый литерал (может быть пустым)
+    StaticAssertNode(std::unique_ptr<ASTNode> cond, std::string msg)
+        : condition(std::move(cond)), message(std::move(msg)) {}
+    void accept(Visitor& visitor) override;
+};
+
+struct ExitExprNode : ASTNode  {
+    std::vector<std::unique_ptr<ASTNode>> arguments;
+    ExitExprNode( std::vector<std::unique_ptr<ASTNode>> args)
+        : arguments(std::move(args)) {}
+    void accept(Visitor& visitor) override;
+};
+
+struct AssertExprNode : ASTNode  {
+    std::vector<std::unique_ptr<ASTNode>> arguments;
+    AssertExprNode( std::vector<std::unique_ptr<ASTNode>> args)
+        : arguments(std::move(args)) {}
+    void accept(Visitor& visitor) override;
+};
+
+
 struct BlockStatementNode : ASTNode {
     std::vector<std::unique_ptr<ASTNode>> statements;
 

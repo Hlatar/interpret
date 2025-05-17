@@ -308,3 +308,50 @@ void PrintVisitor::visit(ContinueStmtNode& node) {
     indent();
     std::cout << "ContinueStmtNode\n";
 }
+
+void PrintVisitor::visit(SizeofExprNode& node) {
+    indent(); std::cout << "SizeofExprNode\n";
+    ++indent_level;
+    indent(); std::cout << (node.isType ? "Type:\n" : "Expression:\n");
+    ++indent_level;
+    node.operand->accept(*this);
+    --indent_level;
+    --indent_level;
+}
+
+void PrintVisitor::visit(StaticAssertNode& node) {
+    indent(); std::cout << "StaticAssertNode\n";
+    ++indent_level;
+    indent(); std::cout << "Condition:\n";
+    ++indent_level;
+    node.condition->accept(*this);
+    --indent_level;
+    if (!node.message.empty()) {
+        indent(); std::cout << "Message: " << node.message << "\n";
+    }
+    --indent_level;
+}
+
+void PrintVisitor::visit(ExitExprNode& node) {
+    indent(); std::cout << "ExitExprNode: "  << "\n";
+    ++indent_level;
+    indent(); std::cout << "Arguments:\n";
+    ++indent_level;
+    for (const auto& arg : node.arguments) {
+        arg->accept(*this);
+    }
+    --indent_level;
+    --indent_level;
+}
+
+void PrintVisitor::visit(AssertExprNode& node) {
+    indent(); std::cout << "AssertExprNode: "  << "\n";
+    ++indent_level;
+    indent(); std::cout << "Arguments:\n";
+    ++indent_level;
+    for (const auto& arg : node.arguments) {
+        arg->accept(*this);
+    }
+    --indent_level;
+    --indent_level;
+}

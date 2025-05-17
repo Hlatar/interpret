@@ -119,3 +119,21 @@ void BreakStmtNode::accept(Visitor& visitor){
 void ContinueStmtNode::accept(Visitor& visitor){
     visitor.visit(*this);
 }
+
+void SizeofExprNode::accept(Visitor& visitor){
+    visitor.visit(*this);
+}
+
+void StaticAssertNode::accept(Visitor& visitor){
+    visitor.visit(*this);
+}
+
+void ExitExprNode::accept(Visitor& visitor){
+    visitor.visit(*this);
+}
+
+void AssertExprNode::accept(Visitor& visitor){
+    visitor.visit(*this);
+}
+
+

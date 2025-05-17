@@ -13,6 +13,7 @@ int x ;
 
 
 void sdfdf(){
+    exit(x ==y ? 0 : 1);
     int x[] = {};
     int x[2];
     int x[2] = {1 , 3 };

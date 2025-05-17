@@ -200,6 +200,19 @@ std::unique_ptr<ASTNode> Parser::parseUnary() {
         return std::make_unique<UnaryExprNode>(op.value, std::move(operand));
     }
 
+    if (match(TokenType::SIZEOF)) {
+    expect(TokenType::LBRACE, "Expected '(' after 'sizeof'");
+    if (isType()) {
+        auto type = parseType();
+        expect(TokenType::RBRACE, "Expected ')' after type");
+        return std::make_unique<SizeofExprNode>(std::move(type), true);
+    } else {
+        auto expr = parseExpression();
+        expect(TokenType::RBRACE, "Expected ')' after expression");
+        return std::make_unique<SizeofExprNode>(std::move(expr), false);
+    }
+    }
+
     return parsePostfix();  // Если нет унарного оператора, переходим к постфиксным выражениям
 }
 
@@ -424,6 +437,37 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
         return std::make_unique<WhileLoopNode>(std::move(condition), std::move(body));
     }
 
+    if (match(TokenType::STATIC_ASSERT)) {
+        expect(TokenType::LBRACE, "Expected '(' after 'static_assert'");
+        auto condition = parseExpression();
+        std::string message;
+        if (match(TokenType::COMMA)) {
+            expect(TokenType::STR_LIT, "Expected string literal for message");
+            message = prev().value;
+        }
+        expect(TokenType::RBRACE, "Expected ')' after static_assert");
+        expect(TokenType::SEMICOLON, "Expected ';' after static_assert");
+        return std::make_unique<StaticAssertNode>(std::move(condition), message);
+    }
+    if (match(TokenType::ASSERT)) {
+        expect(TokenType::LBRACE, "Expected '(' after 'assert'");
+        auto condition = parseExpression();
+        expect(TokenType::RBRACE, "Expected ')' after assert");
+        expect(TokenType::SEMICOLON, "Expected ';' after assert");
+        std::vector<std::unique_ptr<ASTNode>> args;
+        args.push_back(std::move(condition));
+        return std::make_unique<AssertExprNode>(std::move(args));
+    }
+    if (match(TokenType::EXIT)) {
+        expect(TokenType::LBRACE, "Expected '(' after 'exit'");
+        auto code = parseExpression();
+        expect(TokenType::RBRACE, "Expected ')' after exit");
+        expect(TokenType::SEMICOLON, "Expected ';' after exit");
+        std::vector<std::unique_ptr<ASTNode>> args;
+        args.push_back(std::move(code));
+        return std::make_unique<ExitExprNode>(std::move(args));
+    }
+
     if (match(TokenType::DO)) {
         auto body = parseStatement();
         expect(TokenType::WHILE, "Expected 'while' after do");
@@ -593,6 +637,14 @@ void Parser::synchronize() {
 
 bool Parser::isAtEnd() const {
     return peek().type == TokenType::END;
+}
+
+bool Parser::isType() {
+    return check(TokenType::INT) ||
+           check(TokenType::CHAR) ||
+           check(TokenType::VOID) ||
+           check(TokenType::DOUBLE) ||
+           check(TokenType::BOOL);
 }
 
 

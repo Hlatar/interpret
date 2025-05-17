@@ -41,4 +41,9 @@ public:
     virtual void visit(InitListNode&) = 0;
     virtual void visit(BreakStmtNode&) = 0;
     virtual void visit(ContinueStmtNode&) = 0;
+    virtual void visit(SizeofExprNode&) = 0;
+    virtual void visit(StaticAssertNode&) = 0;
+    virtual void visit(ExitExprNode&) = 0;
+    virtual void visit(AssertExprNode&) = 0;
+
 };

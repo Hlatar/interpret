@@ -41,6 +41,11 @@ public:
     void visit(class InitListNode&) override;
     void visit(class BreakStmtNode&) override;
     void visit(class ContinueStmtNode&) override;
+    void visit(class SizeofExprNode&) override;
+    void visit(class StaticAssertNode&) override;
+    void visit(class ExitExprNode&) override;
+    void visit(class AssertExprNode&) override;
+
 
 
 

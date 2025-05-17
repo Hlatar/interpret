@@ -24,6 +24,7 @@ private:
     void reportError(const std::string& message);
     void synchronize(); // NEW: восстановление после ошибки
     bool isAtEnd() const; // NEW: достигнут ли конец
+    bool isType();
 
 
     // === Основные правила грамматики ===

@@ -85,7 +85,9 @@ const std::unordered_map<std::string, TokenType> Lexer::keywords = {
     {"sizeof", TokenType::SIZEOF},
     {"static_assert", TokenType::STATIC_ASSERT},
     {"assert", TokenType::ASSERT},
-    {"exit", TokenType::EXIT}
+    {"exit", TokenType::EXIT},
+    {"print" , TokenType::PRINT},
+    {"read" , TokenType::READ}
 };
 
 

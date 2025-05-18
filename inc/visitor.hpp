@@ -45,5 +45,9 @@ public:
     virtual void visit(StaticAssertNode&) = 0;
     virtual void visit(ExitExprNode&) = 0;
     virtual void visit(AssertExprNode&) = 0;
+    virtual void visit(ReadStmtNode&) = 0;
+    virtual void visit(PrintStmtNode&) = 0;
+    virtual void visit(AssignmentExprNode&) = 0;
+
 
 };

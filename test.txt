@@ -13,13 +13,20 @@ int x ;
 
 
 void sdfdf(){
+        int t = (int ) 6.5 + 7.1;
+
     exit(x ==y ? 0 : 1);
     int x[] = {};
+    read(&d);
+    print(x);
     int x[2];
     int x[2] = {1 , 3 };
     int x = {1 , 2 ,3};
     if (a == b || c < 5 &&  !flag) { int a ; }
+    else if( x > 1){ x = 1 + 2 ;}
+    else if( x > 1){int t = t != 1 ;}
     return x > 10 ? y : z;
+    int w = (int ) x;
 } 
  
 

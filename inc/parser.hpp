@@ -35,6 +35,7 @@ private:
     std::unique_ptr<StructDeclNode> parseStructDeclaration();
     
     // === Операторы (Statements) ===
+    std::unique_ptr<ASTNode> parseAssignment();
     std::unique_ptr<ASTNode> parseStatement();
     std::unique_ptr<ASTNode> parseExpressionStatement();
     std::unique_ptr<ASTNode> parseBlockStatement();
@@ -58,6 +59,7 @@ private:
     std::unique_ptr<ASTNode> parseComparison();
     std::unique_ptr<ASTNode> parseAdditive();
     std::unique_ptr<ASTNode> parseMultiplicative();
+    
     
     // === Вспомогательные элементы деклараций ===
     std::unique_ptr<ASTNode> parseType();

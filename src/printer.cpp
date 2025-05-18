@@ -229,13 +229,13 @@ void PrintVisitor::visit(TernaryExprNode& node) {
     --indent_level;
 }
 
-void PrintVisitor::visit(CastExprNode& node) {
-    indent(); std::cout << "CastExprNode\n";
-    ++indent_level;
-    node.type->accept(*this);
-    node.expression->accept(*this);
-    --indent_level;
-}
+// void PrintVisitor::visit(CastExprNode& node) {
+//     indent(); std::cout << "CastExprNode\n";
+//     ++indent_level;
+//     node.type->accept(*this);
+//     node.expression->accept(*this);
+//     --indent_level;
+// }
 
 void PrintVisitor::visit(SubscriptExprNode& node) {
     indent(); std::cout << "SubscriptExprNode\n";
@@ -352,6 +352,54 @@ void PrintVisitor::visit(AssertExprNode& node) {
     for (const auto& arg : node.arguments) {
         arg->accept(*this);
     }
+    --indent_level;
+    --indent_level;
+}
+
+void PrintVisitor::visit(ReadStmtNode& node) {
+    indent(); std::cout << "ReadStmtNode\n";
+    ++indent_level;
+    indent(); std::cout << "Argument:\n";
+    ++indent_level;
+    node.argument->accept(*this);
+    --indent_level;
+    --indent_level;
+}
+
+void PrintVisitor::visit(PrintStmtNode& node) {
+    indent(); std::cout << "PrintStmtNode\n";
+    ++indent_level;
+    indent(); std::cout << "Argument:\n";
+    ++indent_level;
+    node.argument->accept(*this);
+    --indent_level;
+    --indent_level;
+}
+
+void PrintVisitor::visit(AssignmentExprNode& node) {
+    indent(); std::cout << "AssignmentExprNode\n";
+    ++indent_level;
+    indent(); std::cout << "Left:\n";
+    ++indent_level;
+    node.left->accept(*this);
+    --indent_level;
+    indent(); std::cout << "Right:\n";
+    ++indent_level;
+    node.right->accept(*this);
+    --indent_level;
+    --indent_level;
+}
+
+void PrintVisitor::visit(CastExprNode& node) {
+    indent(); std::cout << "CastExprNode\n";
+    ++indent_level;
+    indent(); std::cout << "Type:\n";
+    ++indent_level;
+    node.type->accept(*this);
+    --indent_level;
+    indent(); std::cout << "Expression:\n";
+    ++indent_level;
+    node.expression->accept(*this);
     --indent_level;
     --indent_level;
 }

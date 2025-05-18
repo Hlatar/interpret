@@ -209,12 +209,34 @@ struct ReturnStatementNode : ASTNode {
 };
 
 struct BreakStatementNode : ASTNode {
-    void accept(Visitor&) override {}
+    void accept(Visitor&) override;
 };
 
 struct ContinueStatementNode : ASTNode {
-    void accept(Visitor&) override {}
+    void accept(Visitor&) override;
 };
+
+struct ReadStmtNode : ASTNode{
+    std::unique_ptr<ASTNode> argument; // ExprNode, обычно UnaryExprNode(&x)
+    ReadStmtNode(std::unique_ptr<ASTNode> arg) : argument(std::move(arg)) {}
+    void accept(Visitor& ) override;
+};
+
+struct PrintStmtNode : ASTNode {
+    std::unique_ptr<ASTNode> argument; // ExprNode (x, 42, etc.)
+    PrintStmtNode(std::unique_ptr<ASTNode> arg) : argument(std::move(arg)) {}
+    void accept(Visitor& ) override;
+};
+
+struct AssignmentExprNode : ASTNode {
+    std::unique_ptr<ASTNode> left;  // Левая часть (например, IdentifierExprNode)
+    std::unique_ptr<ASTNode> right; // Правая часть (например, BinaryExprNode)
+    AssignmentExprNode(std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode> right)
+        : left(std::move(left)), right(std::move(right)) {}
+    void accept(Visitor& ) override;
+};
+
+
 
 struct BinaryExprNode : ASTNode {
     std::string op;

@@ -45,10 +45,10 @@ public:
     void visit(class StaticAssertNode&) override;
     void visit(class ExitExprNode&) override;
     void visit(class AssertExprNode&) override;
-
-
-
-
+    void visit(class ReadStmtNode&) override;
+    void visit(class PrintStmtNode&) override;
+    void visit(class AssignmentExprNode&) override;
+    
 private:
     // Вспомогательные методы для печати или форматирования
     void printIndentation(int level);

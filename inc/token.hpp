@@ -40,7 +40,7 @@ enum class TokenType {
     NEWLINE, TABULATION, BACKSLASH, SQUOTE, DQUOTE, NULL_CHAR , //   \n, \t, \\ , \' , \" , \0
     COMMENT_STR, COMMENT_MULSTR_R, COMMENT_MULSTR_L,  // // , /*, */ 
 
-    STRUCT,  
+    STRUCT, PRINT, READ,
 
     END
     
@@ -130,6 +130,8 @@ static std::string tokenTypeToString(TokenType type) {
 
         // Структуры
         {TokenType::STRUCT, "STRUCT"},
+        { TokenType::PRINT, "PRINT"},
+        {TokenType::READ, "READ" },
 
         // Завершение
         {TokenType::END, "END"}

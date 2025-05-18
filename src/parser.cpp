@@ -17,7 +17,10 @@ std::unique_ptr<ASTNode> Parser::parseTranslationUnit(){
     std::vector<std::unique_ptr<ASTNode>> decls;
     
     while (!isAtEnd()) {
-        
+        if(check(TokenType::COMMENT_STR)){
+            advance();
+            continue;
+        } 
         auto node = parseDeclaration();  // <- вернёт конкретный подтип ASTNode
         if (node) decls.push_back(std::move(node));
     }
@@ -31,7 +34,7 @@ std::unique_ptr<ASTNode> Parser::parseDeclaration(){
 
     bool type_check = check(TokenType::INT) || check(TokenType::VOID) || check(TokenType::ID) || check(TokenType::DOUBLE)|| check(TokenType::CHAR)|| check(TokenType::BOOL);
     
-    
+     
 
     if (check(TokenType::STRUCT)) {
         return parseStructDeclaration();
@@ -93,10 +96,18 @@ std::unique_ptr<VarDeclNode> Parser::parseVarDeclaration(){
 }
 
 std::unique_ptr<ASTNode> Parser::parseExpression() {
-    // Начинаем с парсинга тернарных выражений
+    return parseAssignment();
+}
+
+std::unique_ptr<ASTNode> Parser::parseAssignment() {
     auto expr = parseTernary();
+    if (match(TokenType::EQUAL)) {
+        auto value = parseAssignment(); // Поддержка цепочек, например x = y = z
+        return std::make_unique<AssignmentExprNode>(std::move(expr), std::move(value));
+    }
     return expr;
 }
+
 
 // Тернарный оператор: expr ? expr : expr
 std::unique_ptr<ASTNode> Parser::parseTernary() {
@@ -194,11 +205,12 @@ std::unique_ptr<ASTNode> Parser::parseMultiplicative() {
 
 // Унарные выражения (например, -a, !a, ++a, --a)
 std::unique_ptr<ASTNode> Parser::parseUnary() {
-    if (match({TokenType::MINUS, TokenType::SCREAMER, TokenType::INCREMENT, TokenType::DECREMENT})) {
+    if (match({TokenType::MINUS, TokenType::SCREAMER, TokenType::INCREMENT, TokenType::DECREMENT, TokenType::AMPERSAND})) {
         Token op = prev();
         auto operand = parseUnary();  // Разбираем унарное выражение
         return std::make_unique<UnaryExprNode>(op.value, std::move(operand));
     }
+
 
     if (match(TokenType::SIZEOF)) {
     expect(TokenType::LBRACE, "Expected '(' after 'sizeof'");
@@ -211,6 +223,18 @@ std::unique_ptr<ASTNode> Parser::parseUnary() {
         expect(TokenType::RBRACE, "Expected ')' after expression");
         return std::make_unique<SizeofExprNode>(std::move(expr), false);
     }
+    }
+    if (match(TokenType::LBRACE)) {
+        if (isType()) {
+            auto type = parseType();
+            expect(TokenType::RBRACE, "Expected ')' after cast type");
+            auto expr = parseUnary(); // Парсим выражение с приоритетом унарных операторов
+            return std::make_unique<CastExprNode>(std::move(type), std::move(expr));
+        } else {
+            // Откат, если не тип — это групповое выражение (expr)
+            current--;
+            return parsePostfix();
+        }
     }
 
     return parsePostfix();  // Если нет унарного оператора, переходим к постфиксным выражениям
@@ -435,6 +459,21 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
 
         auto body = parseStatement();
         return std::make_unique<WhileLoopNode>(std::move(condition), std::move(body));
+    }
+
+    if (match(TokenType::READ)) {
+        expect(TokenType::LBRACE, "Expected '(' after 'read'");
+        auto arg = parseExpression(); // Ожидаем &x
+        expect(TokenType::RBRACE, "Expected ')' after read");
+        expect(TokenType::SEMICOLON, "Expected ';' after read");
+        return std::make_unique<ReadStmtNode>(std::move(arg));
+    }
+    if (match(TokenType::PRINT)) {
+        expect(TokenType::LBRACE, "Expected '(' after 'print'");
+        auto arg = parseExpression(); // Ожидаем x, 42, etc.
+        expect(TokenType::RBRACE, "Expected ')' after print");
+        expect(TokenType::SEMICOLON, "Expected ';' after print");
+        return std::make_unique<PrintStmtNode>(std::move(arg));
     }
 
     if (match(TokenType::STATIC_ASSERT)) {

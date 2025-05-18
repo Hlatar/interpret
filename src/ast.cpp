@@ -136,4 +136,18 @@ void AssertExprNode::accept(Visitor& visitor){
     visitor.visit(*this);
 }
 
+void ReadStmtNode::accept(Visitor& visitor){
+    visitor.visit(*this);
+}
+
+void PrintStmtNode::accept(Visitor& visitor){
+    visitor.visit(*this);
+}
+
+void AssignmentExprNode::accept(Visitor& visitor){
+    visitor.visit(*this);
+}
+
+
+
 

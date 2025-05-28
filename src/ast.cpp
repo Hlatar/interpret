@@ -148,6 +148,20 @@ void AssignmentExprNode::accept(Visitor& visitor){
     visitor.visit(*this);
 }
 
+void MemberAccessExprNode::accept(Visitor& visitor){
+    visitor.visit(*this);
+}
+
+void NamespaceDeclNode::accept(Visitor& visitor){
+    visitor.visit(*this);
+}
+
+void ScopedIdentifierExprNode::accept(Visitor& visitor){
+    visitor.visit(*this);
+}
+
+
+
 
 
 

@@ -48,6 +48,10 @@ public:
     void visit(class ReadStmtNode&) override;
     void visit(class PrintStmtNode&) override;
     void visit(class AssignmentExprNode&) override;
+    void visit(class MemberAccessExprNode&) override;
+    void visit(class NamespaceDeclNode&) override;
+    void visit(class ScopedIdentifierExprNode&) override;
+    
     
 private:
     // Вспомогательные методы для печати или форматирования

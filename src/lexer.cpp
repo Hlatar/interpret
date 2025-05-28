@@ -58,8 +58,9 @@ const std::unordered_map<std::string, TokenType> Lexer::operators = {
     {"//", TokenType::COMMENT_STR},
     {"/*", TokenType::COMMENT_MULSTR_R},
     {"*/", TokenType::COMMENT_MULSTR_L},
-    {"&", TokenType::AMPERSAND}
-
+    {"&", TokenType::AMPERSAND},
+    {"->", TokenType::ARROW},
+    {"::", TokenType::SCOPE},
 };
 
 const std::unordered_map<std::string, TokenType> Lexer::keywords = {
@@ -75,8 +76,12 @@ const std::unordered_map<std::string, TokenType> Lexer::keywords = {
     {"char", TokenType::CHAR}, 
     {"bool", TokenType::BOOL}, 
     {"void", TokenType::VOID},
+    {"short", TokenType::SHORT},
+    {"long", TokenType::LONG},
+    {"float", TokenType::FLOAT},
     {"sizeof", TokenType::SIZEOF}, 
-    {"const", TokenType::CONST}, 
+    {"const", TokenType::CONST},
+    {"unsigned", TokenType::UNSIGNED}, 
     {"static_assert", TokenType::STATIC_ASSERT},
     {"assert", TokenType::ASSERT}, 
     {"exit", TokenType::EXIT},
@@ -87,7 +92,8 @@ const std::unordered_map<std::string, TokenType> Lexer::keywords = {
     {"assert", TokenType::ASSERT},
     {"exit", TokenType::EXIT},
     {"print" , TokenType::PRINT},
-    {"read" , TokenType::READ}
+    {"read" , TokenType::READ},
+    {"namespace", TokenType::NAMESPACE}
 };
 
 
@@ -97,11 +103,14 @@ std::vector<Token> Lexer::tokenize() {
     std::vector<Token> tokens;
     while (index < input.size()) {
         Token token = extract();
-        if (token.type == TokenType::END) {
-            tokens.push_back(token);
-            break; // Прерываем после первого END
-        }
         tokens.push_back(token);
+        if (token.type == TokenType::END) {
+            break; // Прерываем после END
+        }
+    }
+    // Гарантируем, что последний токен — END
+    if (tokens.empty() || tokens.back().type != TokenType::END) {
+        tokens.push_back(Token(TokenType::END, ""));
     }
     return tokens;
 }
@@ -109,7 +118,7 @@ std::vector<Token> Lexer::tokenize() {
 Token Lexer::extract() {
     while (index < input.size() && std::isspace(input[index])) ++index;
 
-    if (index >= input.size()) {
+    if (index >= input.size() ) {
         return {TokenType::END, ""};
     }
 

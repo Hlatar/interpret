@@ -23,7 +23,11 @@ void PrintVisitor::visit(TranslationUnitNode& node) {
 }
 
 void PrintVisitor::visit(TypeNode& node) {
-    indent(); std::cout << "TypeNode: " << (node.is_const ? "const " : "") << node.type_name << "\n";
+    indent(); 
+    std::cout << "TypeNode: " << node.type_name;
+    if (node.is_const) std::cout << " [const]";
+    if (node.is_unsigned) std::cout << " [unsigned]";
+    std::cout << "\n";
 }
 
 void PrintVisitor::visit(DeclaratorNode& node) {
@@ -213,6 +217,15 @@ void PrintVisitor::visit(BinaryExprNode& node) {
     --indent_level;
 }
 
+void PrintVisitor::visit(MemberAccessExprNode& node) {
+    indent(); std::cout << "MemberAccessExprNode: " << node.op << "\n";
+    ++indent_level;
+    node.object ->accept(*this);
+    indent();std::cout << "Member: " << node.member << "\n";
+    --indent_level;
+}
+
+
 void PrintVisitor::visit(UnaryExprNode& node) {
     indent(); std::cout << "UnaryExprNode: " << node.op << "\n";
     ++indent_level;
@@ -377,7 +390,7 @@ void PrintVisitor::visit(PrintStmtNode& node) {
 }
 
 void PrintVisitor::visit(AssignmentExprNode& node) {
-    indent(); std::cout << "AssignmentExprNode\n";
+    indent(); std::cout << "AssignmentExprNode: " << node.op << "\n";
     ++indent_level;
     indent(); std::cout << "Left:\n";
     ++indent_level;
@@ -402,4 +415,30 @@ void PrintVisitor::visit(CastExprNode& node) {
     node.expression->accept(*this);
     --indent_level;
     --indent_level;
+}
+
+void PrintVisitor::visit(NamespaceDeclNode& node) {
+    indent();
+    std::cout << "NamespaceDeclNode: " << node.name << "\n";
+    ++indent_level;
+    indent();
+    std::cout << "Declarations:\n";
+    ++indent_level;
+    for (auto& decl : node.declarations) {
+        decl->accept(*this);
+    }
+    --indent_level;
+    --indent_level;
+}
+
+void PrintVisitor::visit(ScopedIdentifierExprNode& node) {
+    indent();
+    std::cout << "ScopedIdentifierExprNode: ";
+    for (size_t i = 0; i < node.path.size(); ++i) {
+        std::cout << node.path[i];
+        if (i < node.path.size() - 1) {
+            std::cout << "::";
+        }
+    }
+    std::cout << "\n";
 }

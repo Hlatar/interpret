@@ -48,6 +48,8 @@ public:
     virtual void visit(ReadStmtNode&) = 0;
     virtual void visit(PrintStmtNode&) = 0;
     virtual void visit(AssignmentExprNode&) = 0;
-
+    virtual void visit(MemberAccessExprNode&) = 0;
+    virtual void visit(NamespaceDeclNode&) = 0;
+    virtual void visit(ScopedIdentifierExprNode&) = 0;
 
 };

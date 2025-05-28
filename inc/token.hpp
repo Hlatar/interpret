@@ -22,6 +22,9 @@ enum class TokenType {
     LFIGUREBRACE, RFIGUREBRACE, // { }
     LSQUAREBRACE, RSQUAREBRACE, // [ ]
     DOT, COMMA, SEMICOLON, DOTDOT,  // . , ; :
+    ARROW, 
+    NAMESPACE, // namespace
+    SCOPE, // ::
     
     
     // Лексемы <id> &&  <literal>
@@ -32,10 +35,11 @@ enum class TokenType {
 
     // Типы <type>
     INT, DOUBLE, CHAR, BOOL, VOID,
+    SHORT, LONG , FLOAT,
 
     //Командлеты
     IF , ELSE , FOR, WHILE, DO ,RETURN , BREAK , 
-    CONTINUE , SIZEOF, CONST , STATIC_ASSERT, ASSERT, EXIT,
+    CONTINUE , SIZEOF, CONST , STATIC_ASSERT, ASSERT, EXIT, UNSIGNED,
 
     NEWLINE, TABULATION, BACKSLASH, SQUOTE, DQUOTE, NULL_CHAR , //   \n, \t, \\ , \' , \" , \0
     COMMENT_STR, COMMENT_MULSTR_R, COMMENT_MULSTR_L,  // // , /*, */ 
@@ -45,6 +49,7 @@ enum class TokenType {
     END
     
 };
+
 
 
 static std::string tokenTypeToString(TokenType type) {
@@ -88,6 +93,9 @@ static std::string tokenTypeToString(TokenType type) {
         {TokenType::COMMA, ","},
         {TokenType::SEMICOLON, ";"},
         {TokenType::DOTDOT, ":"},
+        {TokenType::ARROW, "->"},
+        {TokenType::SCOPE, "::"},
+        {TokenType::NAMESPACE, "NAMESPACE"},
 
         // Лексемы
         {TokenType::ID, "ID"},
@@ -102,6 +110,11 @@ static std::string tokenTypeToString(TokenType type) {
         {TokenType::CHAR, "CHAR"},
         {TokenType::BOOL, "BOOL"},
         {TokenType::VOID, "VOID"},
+        {TokenType::SHORT, "SHORT"},
+        {TokenType::LONG, "LONG"},
+        {TokenType::FLOAT, "FLOAT"},
+        
+        
 
         // Командлеты
         {TokenType::IF, "IF"},
@@ -116,6 +129,7 @@ static std::string tokenTypeToString(TokenType type) {
         {TokenType::STATIC_ASSERT, "STATIC_ASSERT"},
         {TokenType::ASSERT, "ASSERT"},
         {TokenType::EXIT, "EXIT"},
+
 
         // Специальные символы
         {TokenType::NEWLINE, "\n"},
@@ -132,6 +146,9 @@ static std::string tokenTypeToString(TokenType type) {
         {TokenType::STRUCT, "STRUCT"},
         { TokenType::PRINT, "PRINT"},
         {TokenType::READ, "READ" },
+        {TokenType::UNSIGNED, "UNSIGNED" },
+        {TokenType::CONST, "CONST" },
+        
 
         // Завершение
         {TokenType::END, "END"}

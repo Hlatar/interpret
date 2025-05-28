@@ -21,10 +21,11 @@ struct TranslationUnitNode : ASTNode {
 
 struct TypeNode : ASTNode {
     std::string type_name;
-    bool is_const;
+    bool is_const = false;
+    bool is_unsigned = false;
 
-    TypeNode(const std::string& name, bool is_const = false)
-        : type_name(name), is_const(is_const) {}
+    TypeNode(std::string name, bool isConst = false, bool isUnsigned = false)
+        : type_name(std::move(name)), is_const(isConst), is_unsigned(isUnsigned) {}
 
     void accept(Visitor&) override;
 };
@@ -231,12 +232,22 @@ struct PrintStmtNode : ASTNode {
 struct AssignmentExprNode : ASTNode {
     std::unique_ptr<ASTNode> left;  // Левая часть (например, IdentifierExprNode)
     std::unique_ptr<ASTNode> right; // Правая часть (например, BinaryExprNode)
-    AssignmentExprNode(std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode> right)
-        : left(std::move(left)), right(std::move(right)) {}
+    std::string op;
+    AssignmentExprNode(std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode> right, const std::string& op = "=")
+        : left(std::move(left)), right(std::move(right)), op(op) {}
     void accept(Visitor& ) override;
 };
 
+class MemberAccessExprNode : public ASTNode {
+public:
+    std::unique_ptr<ASTNode> object;
+    std::string member;
+    std::string op; // "." или "->"
 
+    MemberAccessExprNode(std::unique_ptr<ASTNode> object, const std::string& member, const std::string& op)
+        : object(std::move(object)), member(member), op(op) {}
+    void accept(Visitor& ) override;
+};
 
 struct BinaryExprNode : ASTNode {
     std::string op;
@@ -339,7 +350,7 @@ struct GroupExprNode : ASTNode {
     void accept(Visitor&) override;
 };
 
-struct PostfixExprNode : public ASTNode {
+struct PostfixExprNode :  ASTNode {
     std::unique_ptr<ASTNode> expr;
     std::string op;
 
@@ -348,4 +359,23 @@ struct PostfixExprNode : public ASTNode {
 
     void accept(Visitor&) override;
 };
-    
+
+struct NamespaceDeclNode :  ASTNode {
+    std::string name;
+    std::vector<std::unique_ptr<ASTNode>> declarations;
+
+    NamespaceDeclNode(std::string name, std::vector<std::unique_ptr<ASTNode>> declarations)
+        : name(std::move(name)), declarations(std::move(declarations)) {}
+
+    void accept(Visitor&) override;
+};
+
+struct ScopedIdentifierExprNode :  ASTNode {
+    std::vector<std::string> path; // Например, {"ns1", "ns2", "x"}
+
+    ScopedIdentifierExprNode(std::vector<std::string> path)
+        : path(std::move(path)) {}
+
+    void accept(Visitor&) override;
+};
+

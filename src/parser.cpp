@@ -29,37 +29,67 @@ std::unique_ptr<ASTNode> Parser::parseTranslationUnit(){
 }
 
 
-
-std::unique_ptr<ASTNode> Parser::parseDeclaration(){
-
-    bool type_check = check(TokenType::INT) || check(TokenType::VOID) || check(TokenType::ID) || check(TokenType::DOUBLE)|| check(TokenType::CHAR)|| check(TokenType::BOOL);
-    
-     
-
+std::unique_ptr<ASTNode> Parser::parseDeclaration() {
+    if (match(TokenType::NAMESPACE)) {
+        return parseNamespaceDeclaration();
+    }
     if (check(TokenType::STRUCT)) {
         return parseStructDeclaration();
     }
 
-
-    if (type_check) {
-        advance();
-        if (check(TokenType::ID)) {
-            expect(TokenType::ID, "Expected identifier");
-            if (check(TokenType::LBRACE)) {
-                current -= 2;
-                return parseFuncDeclaration();
-            } else {
-                current -= 2;
-                return parseVarDeclaration();
-            }
+    if (isType()) {
+        size_t saved_pos = current; // Сохраняем текущую позицию
+        auto type = parseType(); // Пробуем разобрать тип
+        if (check(TokenType::ID) && peekNext().type == TokenType::LBRACE) {
+            current = saved_pos; // Восстанавливаем позицию для функции
+            return parseFuncDeclaration();
+        } else {
+            current = saved_pos; // Восстанавливаем позицию для переменной
+            return parseVarDeclaration();
         }
     }
-    
-    
+
     reportError("Unknown declaration");
     return nullptr;
-    
 }
+// std::unique_ptr<ASTNode> Parser::parseDeclaration(){
+
+//     bool type_check = check(TokenType::UNSIGNED) ||check(TokenType::CONST) ||check(TokenType::INT) || check(TokenType::VOID) || check(TokenType::ID) || check(TokenType::DOUBLE)|| check(TokenType::CHAR)|| check(TokenType::BOOL);
+    
+     
+
+//     if (check(TokenType::STRUCT)) {
+//         return parseStructDeclaration();
+//     }
+
+
+//     if (type_check) {
+
+//         std::cout << tokens[current].value << std::endl;
+
+//         advance();
+//         std::cout << tokens[current].value << std::endl;
+//         if (check(TokenType::ID)) {
+//             expect(TokenType::ID, "Expected identifier");
+//             if (check(TokenType::LBRACE)) {
+//                 current -= 2;
+//                 return parseFuncDeclaration();
+//             } else {
+//                 current -= 2;
+//                 return parseVarDeclaration();
+//             }
+//         }
+//     }
+    
+    
+//     reportError("Unknown declaration");
+//     return nullptr;
+    
+// }
+
+
+
+
 
 std::unique_ptr<VarDeclNode> Parser::parseVarDeclaration(){
     auto type = parseType();
@@ -101,9 +131,11 @@ std::unique_ptr<ASTNode> Parser::parseExpression() {
 
 std::unique_ptr<ASTNode> Parser::parseAssignment() {
     auto expr = parseTernary();
-    if (match(TokenType::EQUAL)) {
+    if (match({TokenType::EQUAL, TokenType::PLUS_ASSIGN, TokenType::MINUS_ASSIGN,
+               TokenType::MULT_ASSIGN, TokenType::DIV_ASSIGN, TokenType::MOD_ASSIGN})) {
+        Token op = prev(); 
         auto value = parseAssignment(); // Поддержка цепочек, например x = y = z
-        return std::make_unique<AssignmentExprNode>(std::move(expr), std::move(value));
+        return std::make_unique<AssignmentExprNode>(std::move(expr), std::move(value), op.value);
     }
     return expr;
 }
@@ -193,7 +225,7 @@ std::unique_ptr<ASTNode> Parser::parseAdditive() {
 std::unique_ptr<ASTNode> Parser::parseMultiplicative() {
     auto lhs = parseUnary();
 
-    while (match({TokenType::STAR, TokenType::SLASH})) {
+    while (match({TokenType::STAR, TokenType::SLASH, TokenType::PERCENT})) {
         Token op = prev();
         auto rhs = parseUnary();
         lhs = std::make_unique<BinaryExprNode>(op.value, std::move(lhs), std::move(rhs));
@@ -268,6 +300,12 @@ std::unique_ptr<ASTNode> Parser::parsePostfix() {
             // Постфиксный инкремент/декремент
             Token op = prev();
             expr = std::make_unique<PostfixExprNode>(std::move(expr), op.value);  // Например, "++" или "--"
+        }else if (match({TokenType::DOT, TokenType::ARROW})) {
+            // Доступ к членам структур
+            Token op = prev();
+            expect(TokenType::ID, "Expected member name after " + op.value);
+            std::string memberName = prev().value;
+            expr = std::make_unique<MemberAccessExprNode>(std::move(expr), memberName, op.value);
         }else {
             break;
         }
@@ -283,28 +321,45 @@ std::unique_ptr<ASTNode> Parser::parsePostfix() {
 std::unique_ptr<ASTNode> Parser::parsePrimary() {
     if (match(TokenType::INT_LIT)) {
         return std::make_unique<LiteralExprNode>(
-            std::make_unique<TypeNode>("int"), prev().value
+            std::make_unique<TypeNode>("int", false, false), prev().value
         );
     } else if (match(TokenType::FLOAT_LIT)) {
         return std::make_unique<LiteralExprNode>(
-            std::make_unique<TypeNode>("float"), prev().value
+            std::make_unique<TypeNode>("float", false, false), prev().value
         );
     } else if (match(TokenType::CHAR_LIT)) {
         return std::make_unique<LiteralExprNode>(
-            std::make_unique<TypeNode>("char"), prev().value
+            std::make_unique<TypeNode>("char", false, false), prev().value
         );
     } else if (match(TokenType::STR_LIT)) {
         return std::make_unique<LiteralExprNode>(
-            std::make_unique<TypeNode>("string"), prev().value
+            std::make_unique<TypeNode>("string", false, false), prev().value
         );
     } else if (match(TokenType::ID)) {
-        return std::make_unique<IdentifierExprNode>(prev().value);
+        std::vector<std::string> path = {prev().value};
+        size_t scope_count = 0;
+        while (match(TokenType::SCOPE)) {
+            if (++scope_count > 100) { // Защита от бесконечного цикла
+                reportError("Too many scope operators (::) at token '" + peek().value + "'");
+                return nullptr;
+            }
+            if (!match(TokenType::ID)) {
+                reportError("Expected identifier after :: at token '" + peek().value + "'");
+                return nullptr;
+            }
+            path.push_back(prev().value);
+        }
+        if (path.size() > 1) {
+            return std::make_unique<ScopedIdentifierExprNode>(std::move(path));
+        }
+        return std::make_unique<IdentifierExprNode>(std::move(path[0]));
     }
     else if (match(TokenType::LBRACE)) {
         auto expr = parseExpression();
         expect(TokenType::RBRACE, "Expected ')' after expression.");
         return std::make_unique<GroupExprNode>(std::move(expr));
     }
+    
 
     reportError("Expected expression.");
     return nullptr;  // обязательно, чтобы избежать warning про отсутствие return
@@ -312,12 +367,28 @@ std::unique_ptr<ASTNode> Parser::parsePrimary() {
 
 
 std::unique_ptr<ASTNode> Parser::parseType(){
-    if (match(TokenType::INT)) return std::make_unique<TypeNode>("int");
-    if (match(TokenType::DOUBLE)) return std::make_unique<TypeNode>("double");
-    if (match(TokenType::CHAR)) return std::make_unique<TypeNode>("char");
-    if (match(TokenType::VOID)) return std::make_unique<TypeNode>("void");
-    if (match(TokenType::BOOL)) return std::make_unique<TypeNode>("bool");
-    // if ()
+    bool isConst = false;
+    bool isUnsigned = false;
+
+    // Проверяем модификаторы (можно в любом порядке)
+    while (match(TokenType::CONST) || match(TokenType::UNSIGNED)) {
+        if (prev().type == TokenType::CONST) {
+            isConst = true;
+        } else if (prev().type == TokenType::UNSIGNED) {
+            isUnsigned = true;
+        }
+    }
+
+    if (match(TokenType::INT)) return std::make_unique<TypeNode>("int", isConst, isUnsigned);
+    if (match(TokenType::DOUBLE)) return std::make_unique<TypeNode>("double", isConst, isUnsigned);
+    if (match(TokenType::CHAR)) return std::make_unique<TypeNode>("char", isConst, isUnsigned);
+    if (match(TokenType::VOID)) return std::make_unique<TypeNode>("void", isConst, isUnsigned);
+    if (match(TokenType::BOOL)) return std::make_unique<TypeNode>("bool", isConst, isUnsigned);
+    if (match(TokenType::SHORT)) return std::make_unique<TypeNode>("short", isConst, isUnsigned);
+    if (match(TokenType::LONG)) return std::make_unique<TypeNode>("long", isConst, isUnsigned);
+    if (match(TokenType::FLOAT)) return std::make_unique<TypeNode>("float", isConst, isUnsigned);
+
+    // if (match(TokenType::ID)) return std::make_unique<TypeNode>(prev().value, isConst, isUnsigned); // Для структур
 
     reportError("Expected a type");
     return nullptr;
@@ -340,8 +411,7 @@ std::unique_ptr<DeclaratorNode> Parser::parseDeclarator() {
 std::unique_ptr<FuncDeclNode> Parser::parseFuncDeclaration() {
     // 1. Тип или идентификатор (для возвращаемого типа)
     std::unique_ptr<ASTNode> returnType = nullptr;
-    if (check(TokenType::ID) || check(TokenType::INT) || check(TokenType::DOUBLE) ||
-        check(TokenType::CHAR) || check(TokenType::BOOL) || check(TokenType::VOID)) {
+    if (isType()) {
         returnType = parseType();
     } else {
         reportError("Expected return type in function declaration");
@@ -391,8 +461,7 @@ std::unique_ptr<FuncDeclNode> Parser::parseFuncDeclaration() {
 
 std::unique_ptr<ParamDeclNode> Parser::parseParamDeclaration() {
     std::unique_ptr<ASTNode> type = nullptr;
-    if (check(TokenType::ID) || check(TokenType::INT) || check(TokenType::DOUBLE) ||
-        check(TokenType::CHAR) || check(TokenType::BOOL) || check(TokenType::VOID)) {
+    if (isType()) {
         type = parseType();
     } else {
         reportError("Expected type in parameter");
@@ -561,8 +630,7 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
     }
 
     // Попытка обработать объявление переменной
-    if (check(TokenType::INT) || check(TokenType::DOUBLE) || check(TokenType::CHAR) ||
-        check(TokenType::BOOL) || check(TokenType::VOID)) {
+    if (isType()) {
         return parseVarDeclaration();
     }
 
@@ -573,7 +641,19 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
 }
 
 
-
+std::unique_ptr<ASTNode> Parser::parseNamespaceDeclaration() {
+    expect(TokenType::ID, "Expected namespace name");
+    std::string name = prev().value;
+    expect(TokenType::LFIGUREBRACE, "Expected '{' after namespace name");
+    
+    std::vector<std::unique_ptr<ASTNode>> declarations;
+    while (!check(TokenType::RFIGUREBRACE) && !isAtEnd()) {
+        declarations.push_back(parseDeclaration());
+    }
+    
+    expect(TokenType::RFIGUREBRACE, "Expected '}' after namespace body");
+    return std::make_unique<NamespaceDeclNode>(name, std::move(declarations));
+}
 
 std::unique_ptr<StructDeclNode> Parser::parseStructDeclaration() {
     advance();
@@ -675,15 +755,29 @@ void Parser::synchronize() {
 }
 
 bool Parser::isAtEnd() const {
-    return peek().type == TokenType::END;
+    return current >= tokens.size() || peek().type == TokenType::END;
 }
 
 bool Parser::isType() {
-    return check(TokenType::INT) ||
-           check(TokenType::CHAR) ||
-           check(TokenType::VOID) ||
-           check(TokenType::DOUBLE) ||
-           check(TokenType::BOOL);
+    size_t lookahead = current;
+    while (tokens[lookahead].type == TokenType::CONST || tokens[lookahead].type == TokenType::UNSIGNED) {
+        lookahead++;
+    }
+    return tokens[lookahead].type == TokenType::INT ||
+           tokens[lookahead].type == TokenType::CHAR ||
+           tokens[lookahead].type == TokenType::VOID ||
+           tokens[lookahead].type == TokenType::DOUBLE ||
+           tokens[lookahead].type == TokenType::SHORT ||
+           tokens[lookahead].type == TokenType::FLOAT ||
+           tokens[lookahead].type == TokenType::LONG ||
+           tokens[lookahead].type == TokenType::BOOL;
+        //     ||
+        //    tokens[lookahead].type == TokenType::ID; // Для структур
+}
+
+Token Parser::peekNext() const {
+    if (current + 1 >= tokens.size()) return Token(TokenType::END, "");
+    return tokens[current + 1];
 }
 
 

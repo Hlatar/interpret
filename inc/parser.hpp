@@ -25,6 +25,8 @@ private:
     void synchronize(); // NEW: восстановление после ошибки
     bool isAtEnd() const; // NEW: достигнут ли конец
     bool isType();
+    Token peekNext() const;
+    
 
 
     // === Основные правила грамматики ===
@@ -32,6 +34,7 @@ private:
     std::unique_ptr<ASTNode> parseDeclaration();   //check
     std::unique_ptr<VarDeclNode> parseVarDeclaration();     //
     std::unique_ptr<FuncDeclNode> parseFuncDeclaration();
+    std::unique_ptr<ASTNode> parseNamespaceDeclaration();
     std::unique_ptr<StructDeclNode> parseStructDeclaration();
     
     // === Операторы (Statements) ===

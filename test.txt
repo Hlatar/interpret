@@ -1,3 +1,30 @@
+namespace ns1 {
+    int x = 42;
+    namespace ns2 {
+        int y = 10;
+        namespace ns2 {
+            namespace ns2 {
+                namespace ns2 {
+        int y = 10;
+    }
+        int y = 10;
+    }
+
+        int y = 10;
+    }
+    namespace ns2 {
+        int y = 10;
+    }
+    }
+}
+
+int c = x + dsfsfs+ sfafsd;
+
+int z = ns1::x + ns1::ns2::y::r;
+
+
+const int y = 1;
+
 struct fsdfsfd {
     int x ;
     char y;
@@ -6,15 +33,27 @@ struct fsdfsfd {
     int x[2] = {1 , 3 };
     int x = {1 , 2 ,3};
     char x[2] = {'d', 'd'};
-    double x[2] = {1.1, 2.2};
+    const unsigned double x[2] = {1.1, 2.2};
+    const unsigned int x = 0;
+    
 };
 int x ;
 
+const char sdfs(){
+    print("hello world");
+}
 
 
 void sdfdf(){
-        int t = (int ) 6.5 + 7.1;
-
+   
+        int t = (int ) 6.5 % 7.1;
+        x -= y -= x;
+    const int  x =  & d;
+    access -> y.y;
+    x.smth.y;
+    x++;
+    ++x;
+    const int y = 1;
     exit(x ==y ? 0 : 1);
     int x[] = {};
     read(&d);
@@ -28,7 +67,9 @@ void sdfdf(){
     return x > 10 ? y : z;
     int w = (int ) x;
 } 
+
  
+
 
 
 

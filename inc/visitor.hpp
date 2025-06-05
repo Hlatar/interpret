@@ -23,8 +23,6 @@ public:
     virtual void visit(DoWhileLoopNode&) = 0;
     virtual void visit(ForLoopNode&) = 0;
     virtual void visit(ReturnStatementNode&) = 0;
-    virtual void visit(BreakStatementNode&) = 0;
-    virtual void visit(ContinueStatementNode&) = 0;
     
     // Выражения
     virtual void visit(BinaryExprNode&) = 0;
@@ -33,7 +31,6 @@ public:
     virtual void visit(CastExprNode&) = 0;
     virtual void visit(SubscriptExprNode&) = 0;
     virtual void visit(CallExprNode&) = 0;
-    virtual void visit(AccessExprNode&) = 0;
     virtual void visit(LiteralExprNode&) = 0;
     virtual void visit(IdentifierExprNode&) = 0;
     virtual void visit(GroupExprNode&) = 0;
@@ -49,7 +46,7 @@ public:
     virtual void visit(PrintStmtNode&) = 0;
     virtual void visit(AssignmentExprNode&) = 0;
     virtual void visit(MemberAccessExprNode&) = 0;
-    virtual void visit(NamespaceDeclNode&) = 0;
+    virtual void visit(NamespaceDeclNode&) = 0; //
     virtual void visit(ScopedIdentifierExprNode&) = 0;
 
 };

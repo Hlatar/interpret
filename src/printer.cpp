@@ -201,13 +201,6 @@ void PrintVisitor::visit(ReturnStatementNode& node) {
     }
 }
 
-void PrintVisitor::visit(BreakStatementNode&) {
-    indent(); std::cout << "BreakStatementNode\n";
-}
-
-void PrintVisitor::visit(ContinueStatementNode&) {
-    indent(); std::cout << "ContinueStatementNode\n";
-}
 
 void PrintVisitor::visit(BinaryExprNode& node) {
     indent(); std::cout << "BinaryExprNode: " << node.op << "\n";
@@ -271,12 +264,6 @@ void PrintVisitor::visit(CallExprNode& node) {
     --indent_level;
 }
 
-void PrintVisitor::visit(AccessExprNode& node) {
-    indent(); std::cout << "AccessExprNode: " << (node.is_pointer_access ? "->" : ".") << node.member << "\n";
-    ++indent_level;
-    node.object->accept(*this);
-    --indent_level;
-}
 
 void PrintVisitor::visit(LiteralExprNode& node) {
     indent(); std::cout << "LiteralExprNode: " << node.value << "\n";

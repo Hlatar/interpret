@@ -1,7 +1,6 @@
 #include "../inc/lexer.hpp"
-
-
 #include <stdexcept>
+#include <iostream>
 
 
 Lexer::Lexer(const std::string& input) : input(input) {}
@@ -63,6 +62,8 @@ const std::unordered_map<std::string, TokenType> Lexer::operators = {
     {"::", TokenType::SCOPE},
 };
 
+//лексер и ascape последователь игнорить 
+
 const std::unordered_map<std::string, TokenType> Lexer::keywords = {
     {"if", TokenType::IF}, 
     {"else", TokenType::ELSE}, 
@@ -104,6 +105,9 @@ std::vector<Token> Lexer::tokenize() {
     while (index < input.size()) {
         Token token = extract();
         tokens.push_back(token);
+        if (token.type == TokenType::COMMENT_STR) {
+            tokens.erase(tokens.end()); // Прерываем после END
+        }
         if (token.type == TokenType::END) {
             break; // Прерываем после END
         }
@@ -175,7 +179,6 @@ Token Lexer::extract_identifier() {
 
 
     std::string name(input, index, size);
-
     index += size;
 
 
@@ -187,11 +190,6 @@ Token Lexer::extract_identifier() {
     throw std::runtime_error("Unexpected identifier \n");
 }
 
-//to do:
-//comments
-// the ''
-//add the errors
-// escape последовательности
 
 Token Lexer::extract_operator() {
     std::size_t size = 1;  // Начинаем с одного символа
@@ -203,6 +201,23 @@ Token Lexer::extract_operator() {
         std::size_t i = 0;
         index++;
         while(index + i < input.size() && input[index + i] != '"'){
+            if(input[index + i] == '\\'){
+                std::cout << "Spotted the amongus: " << input[index + i] << std::endl;
+                
+                if(escape.contains(std::string(1 , input[index + i + 1]))){
+                    if(input[index + i + 1] == '0' ){
+                        input.replace(index + i + 1, 1 , std::string(1, '\0'));
+                    }else if(input[index + i + 1] == 't'){
+                        input.replace(index + i + 1, 1 , std::string(1, '\t'));
+                    }else if(input[index + i + 1] == 'n'){
+                        input.replace(index + i + 1, 1 , std::string(1, '\n'));
+                    }
+                    input.erase(index+ i, 1);
+                }else{
+                    std::cerr << "error: missing terminating \' character"  << std::endl;
+                    exit(1);
+                }
+            }
             ++i;
         }
 
@@ -217,8 +232,7 @@ Token Lexer::extract_operator() {
         }
         
     }
-//  Добить лексер с комментариями , и обработку ошибок в пустом '' 
-// Парсер начаьт писать 
+
     if(op == "\'"){  
         std::size_t i = 0;
         index++;
@@ -248,11 +262,23 @@ Token Lexer::extract_operator() {
         }else if (input[index] == '\\'){
             std::string name(input, index, i);
             index += i +1;
-            //std::cout << name<< std::endl;
             
             auto it = escape.find(std::string(1, name[1]));
             if (it != escape.end()) {
-                return {it->second, name}; // Нашли ключевое слово
+                if(std::string(1, name[1]) == "0"){
+                    name = std::string(1, '\0');
+                }else if(std::string(1, name[1]) == "n"){
+                    name = std::string(1, '\n');
+                }else if(std::string(1, name[1]) == "t"){
+                    name = std::string(1, '\t');
+                }else if(std::string(1, name[1]) == "\""){
+                    name = std::string(1, '\"');
+                }else if(std::string(1, name[1]) == "\'"){
+                    name = std::string(1, '\'');
+                }else if(std::string(1, name[1]) == "\\"){
+                    name = std::string(1, '\\');
+                }
+                return {TokenType::CHAR_LIT, name}; // Нашли ключевое слово
             }else{
                 std::cerr << "warning: unknown escape sequence: '"<< name << "'"  << std::endl;
                 exit(1); 
@@ -267,16 +293,16 @@ Token Lexer::extract_operator() {
         throw std::runtime_error("Unexpected operator: " + op);
     }
 
-    // Проверяем, есть ли следующий символ в `operators`
+    // проверяем, есть ли следующий символ в `operators`
     if (index + 1 < input.size()) {
-        std::string two_char_op = op + input[index + 1]; // Двухсимвольный оператор
+        std::string two_char_op = op + input[index + 1]; // двухсимвольный оператор
         if (operators.contains(two_char_op)) {
             op = two_char_op;
             size = 2;
         }
     }
 
-    // Проверяем, есть ли оператор в словаре
+    // проверяем, есть ли оператор в словаре
     auto it = operators.find(op);
     if(op == "//"){
         std::size_t i = 0;
@@ -284,15 +310,15 @@ Token Lexer::extract_operator() {
             ++i;
         }
         std::string comment(input, index , i);
-        index += size + i;
-        //std::cout << comment<< std::endl;
+        index += size + i - 1 ;
+        
 
         return{TokenType::COMMENT_STR , comment};
 
     }
 
     if (op == "/*") {
-        std::size_t i = 0;
+        std::size_t i = 2;
     
         // Ищем закрытие */ безопасно
         while (index + i + 1 < input.size()) {
@@ -326,11 +352,5 @@ Token Lexer::extract_operator() {
     
     throw std::runtime_error("Unexpected operator: " + op);
 }
-
-
-
-
-
-
 
 /// для операторов лексер доибть 

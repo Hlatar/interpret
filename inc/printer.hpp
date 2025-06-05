@@ -31,12 +31,9 @@ public:
     void visit(class CastExprNode&) override;
     void visit(class SubscriptExprNode&) override;
     void visit(class CallExprNode&) override;
-    void visit(class AccessExprNode&) override;
     void visit(class LiteralExprNode&) override;
     void visit(class IdentifierExprNode&) override;
     void visit(class GroupExprNode&) override;
-    void visit(class BreakStatementNode&) override;
-    void visit(class ContinueStatementNode&) override;
     void visit(class PostfixExprNode&) override;
     void visit(class InitListNode&) override;
     void visit(class BreakStmtNode&) override;

@@ -2,6 +2,8 @@
 #include "lexer.hpp"
 #include "parser.hpp"
 #include "../inc/printer.hpp"
+#include "sema.hpp"
+
 
 int main(int argc, char* argv[]) {
 
@@ -22,6 +24,12 @@ int main(int argc, char* argv[]) {
     
     Parser parser(tmp); // Создаём объект парсера с токенами
     auto ast = parser.parse(); // Вызываем метод parse для получения AST
+    
+    SemanticAnalyzer sem;
+    sem.analyze(*dynamic_cast<ASTNode*>(ast.get()));
+    // SemanticAnalyzer semantic;
+    
+    // semantic.analyze(*dynamic_cast<TranslationUnitNode*>(ast.get()));
     
     
     PrintVisitor smth;  // visitor дописать

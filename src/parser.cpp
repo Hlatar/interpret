@@ -662,7 +662,7 @@ std::unique_ptr<StructDeclNode> Parser::parseStructDeclaration() {
     }
     std::string name = peek().value;
     std::vector<std::unique_ptr<VarDeclNode>> members;
-    
+     std::unique_ptr<ASTNode> return_type;
     
 
     advance();

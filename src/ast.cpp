@@ -88,10 +88,6 @@ void CallExprNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
-void AccessExprNode::accept(Visitor& visitor) {
-    visitor.visit(*this);
-}
-
 void LiteralExprNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }

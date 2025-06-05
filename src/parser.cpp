@@ -2,10 +2,14 @@
 #include "iostream"
 #include "../inc/token.hpp"
 #include <memory>
+#include <unordered_set>
 
 
 Parser::Parser(const std::vector<Token>& tokens) : tokens(tokens) {}
 
+std::unordered_set<std::string> knownTypes = {
+    "int", "double", "char", "void", "bool", "short", "long", "float"
+};
 
 
 std::unique_ptr<ASTNode> Parser::parse() {
@@ -388,7 +392,7 @@ std::unique_ptr<ASTNode> Parser::parseType(){
     if (match(TokenType::LONG)) return std::make_unique<TypeNode>("long", isConst, isUnsigned);
     if (match(TokenType::FLOAT)) return std::make_unique<TypeNode>("float", isConst, isUnsigned);
 
-    // if (match(TokenType::ID)) return std::make_unique<TypeNode>(prev().value, isConst, isUnsigned); // Для структур
+    if (match(TokenType::ID)) return std::make_unique<TypeNode>(prev().value, isConst, isUnsigned); // Для структур
 
     reportError("Expected a type");
     return nullptr;
@@ -664,7 +668,7 @@ std::unique_ptr<StructDeclNode> Parser::parseStructDeclaration() {
     std::vector<std::unique_ptr<VarDeclNode>> members;
      std::unique_ptr<ASTNode> return_type;
     
-
+    knownTypes.insert(name);
     advance();
     if(!check(TokenType::LFIGUREBRACE)){
         reportError(" error: expected declaration '{'");
@@ -763,22 +767,28 @@ bool Parser::isType() {
     while (tokens[lookahead].type == TokenType::CONST || tokens[lookahead].type == TokenType::UNSIGNED) {
         lookahead++;
     }
-    return tokens[lookahead].type == TokenType::INT ||
-           tokens[lookahead].type == TokenType::CHAR ||
-           tokens[lookahead].type == TokenType::VOID ||
-           tokens[lookahead].type == TokenType::DOUBLE ||
-           tokens[lookahead].type == TokenType::SHORT ||
-           tokens[lookahead].type == TokenType::FLOAT ||
-           tokens[lookahead].type == TokenType::LONG ||
-           tokens[lookahead].type == TokenType::BOOL;
-        //     ||
-        //    tokens[lookahead].type == TokenType::ID; // Для структур
+    if (tokens[lookahead].type == TokenType::INT ||
+        tokens[lookahead].type == TokenType::CHAR ||
+        tokens[lookahead].type == TokenType::VOID ||
+        tokens[lookahead].type == TokenType::DOUBLE ||
+        tokens[lookahead].type == TokenType::SHORT ||
+        tokens[lookahead].type == TokenType::FLOAT ||
+        tokens[lookahead].type == TokenType::LONG ||
+        tokens[lookahead].type == TokenType::BOOL) {
+        return true;
+    }
+    if (tokens[lookahead].type == TokenType::ID) {
+        return knownTypes.find(tokens[lookahead].value) != knownTypes.end();
+    }
+    return false;
 }
 
 Token Parser::peekNext() const {
     if (current + 1 >= tokens.size()) return Token(TokenType::END, "");
     return tokens[current + 1];
 }
+
+
 
 
 

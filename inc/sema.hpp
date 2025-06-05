@@ -69,6 +69,8 @@ public:
 private:
     std::shared_ptr<Scope> currentScope;
     std::unordered_map<std::string, FunctionSignature> functionTable;
+    std::unordered_map<std::string, std::shared_ptr<Type>> typeTable;
+    std::vector<std::shared_ptr<Type>> expectedReturnTypes;
 
     void enterScope() {
         currentScope = std::make_shared<Scope>(currentScope);
@@ -86,10 +88,14 @@ private:
         return currentScope ? currentScope->lookup(name) : std::nullopt;
     }
 
+    void collectFunctionSignatures(TranslationUnitNode& node);
+    
+
     std::vector<std::shared_ptr<Type>> extractTypes(const std::vector<std::pair<std::string, std::shared_ptr<Type>>>& params) {
         std::vector<std::shared_ptr<Type>> result;
         for (const auto& p : params)
             result.push_back(p.second);
         return result;
     }
+    std::shared_ptr<Type> getType(ASTNode& expr);
 };

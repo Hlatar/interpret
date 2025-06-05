@@ -54,7 +54,7 @@ struct InitDeclaratorNode : DeclNode {
     void accept(Visitor&) override;
 };
 
-struct InitListNode : DeclNode {
+struct InitListNode : ExprNode {
     std::vector<std::unique_ptr<ASTNode>> elements;
     InitListNode(std::vector<std::unique_ptr<ASTNode>> elements) : elements(std::move(elements)) {}
     void accept(Visitor&) override;
@@ -267,6 +267,9 @@ struct PostfixExprNode : ExprNode {
 
 struct ScopedIdentifierExprNode : ExprNode {
     std::vector<std::string> path;
+    std::string getName() const {
+        return path.empty() ? "" : path.back();
+    }
     ScopedIdentifierExprNode(std::vector<std::string> path) : path(std::move(path)) {}
     void accept(Visitor&) override;
 };

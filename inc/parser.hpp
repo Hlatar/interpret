@@ -26,6 +26,7 @@ private:
     bool isAtEnd() const; // NEW: достигнут ли конец
     bool isType();
     Token peekNext() const;
+
     
 
 

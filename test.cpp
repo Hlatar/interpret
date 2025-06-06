@@ -1,9 +1,5 @@
-float f(int smt , int zz){
-    return smt + zz; 
-} 
-
-int main() {
-    int x = 1;
-    float y = 1.2;
-    return f(x , y );
-} 
+int main(){
+    for(int x = 0 ; x < 15 ; x ++){
+        int y = 0;
+    }
+}

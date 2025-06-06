@@ -11,6 +11,8 @@
 
 class SemanticError : public std::runtime_error {
 public:
+    
+
     explicit SemanticError(const std::string& message)
         : std::runtime_error("Semantic Error: " + message) {}
 
@@ -66,7 +68,20 @@ public:
     void visit( MemberAccessExprNode& node) override;
     void visit( NamespaceDeclNode& node) override;
     void visit( ScopedIdentifierExprNode& node) override;
+    bool hasErrors() const { return !errors.empty(); }
+    const std::vector<std::string>& getErrors() const { return errors; }
+    template<typename T>
+    void safeVisit(std::unique_ptr<T>& node) {
+    if (!node) return;
+    try {
+        node->accept(*this);
+    } catch (const SemanticError& e) {
+        errors.push_back(e.what());
+    }
+}
+
 private:
+    std::vector<std::string> errors;
     std::shared_ptr<Scope> currentScope;
     std::unordered_map<std::string, FunctionSignature> functionTable;
     std::unordered_map<std::string, std::shared_ptr<Type>> typeTable;
@@ -99,3 +114,4 @@ private:
     }
     std::shared_ptr<Type> getType(ASTNode& expr);
 };
+
